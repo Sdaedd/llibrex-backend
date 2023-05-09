@@ -2,8 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Libro = require("./models/libroModel");
 const app = express();
+const cors = require('cors');
 
 app.use(express.json());
+app.use(cors());
 
 /* 
         ROUTES
@@ -84,8 +86,12 @@ app.delete('/libro/:id', async(req, res) => {
 
 */
 mongoose.connect(
-    "mongodb+srv://edgoluc:mixeer123@llibrex.742lzwi.mongodb.net/Llibrex?retryWrites=true&w=majority"
-  )
+    "mongodb+srv://edgoluc:mixeer123@llibrex.742lzwi.mongodb.net/Llibrex?retryWrites=true&w=majority" , {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }
+  
+    )
   .then(() => {
     console.log("Conectado a MongoDB");
     app.listen(3000, () => {

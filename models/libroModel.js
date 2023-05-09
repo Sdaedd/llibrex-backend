@@ -10,13 +10,17 @@ const libroSchema = mongoose.Schema(
             type: String,
             required: [true, "Por favor, introduzca un título para el libro."]
         },
-        author: {
-            type: String,
+        authors: {
+            type: Array,
             required: [true, "Por favor, introduzca el autor del libro."]
         },
         description: {
             type: String,
             required: [true, "Por favor, introduzca una descripción del libro."]
+        },
+        image: {
+            type: String,
+            required: [true, "Por favor, introduzca una URL de imagen del libro."]
         },
         publicationDate: {
             type: Date,

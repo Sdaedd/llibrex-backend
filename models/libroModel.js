@@ -34,11 +34,11 @@ const libroSchema = mongoose.Schema(
             type: Number,
             default: 0
         },
-/*         owner: {
+        owner: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
+            ref: 'Usuario',
             required: true
-        } */
+        }
     },
     { timestamps: true }
 );

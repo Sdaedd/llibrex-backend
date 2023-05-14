@@ -26,13 +26,13 @@ const libroSchema = mongoose.Schema(
             type: Date,
             required: [true, "Por favor, introduzca la fecha de publicación del libro."]
         },
-        blob: {
+       /*  blob: {
             type: Buffer,
             required: [true, "Por favor, cargue el archivo EPUB."]
-        },
-        actualPage: {
+        }, */
+        pageCount: {
             type: Number,
-            default: 0
+            required: [true, "Por favor, introduzca la cantidad de páginas."]
         },
         owner: {
             type: mongoose.Schema.Types.ObjectId,

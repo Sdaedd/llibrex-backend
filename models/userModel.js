@@ -24,7 +24,7 @@ const usuarioSchema = mongoose.Schema(
         },
         capituloActual: {
           type: String,
-          default: '' // Capítulo por defecto cuando no se ha leído ningún capítulo aún
+          default: 0 // Capítulo por defecto cuando no se ha leído ningún capítulo aún
         }
       }
     ]

@@ -5,7 +5,7 @@ const usuarioSchema = mongoose.Schema(
   {
     acceso: {
       type: String,
-      required: [true, "Por favor, introduzca el tipo de acceso del usuario."] // Ejemplo: admin, moderador, usuario
+      default: "usuario" // Ejemplo: admin, moderador, usuario
     },
     nombre: {
       type: String,
@@ -32,7 +32,7 @@ const usuarioSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-// Antes de guardar el usuario, se realiza el hash de la contraseña mediante bcryptjs
+/* // Antes de guardar el usuario, se realiza el hash de la contraseña mediante bcryptjs
 usuarioSchema.pre('save', async function (next) {
   if (!this.isModified('contraseña')) {
     return next();
@@ -63,11 +63,8 @@ usuarioSchema.pre('findOneAndUpdate', async function (next) {
 
 // Método para comparar la contraseña ingresada con la contraseña almacenada
 usuarioSchema.methods.comparePassword = async function (contraseña) {
-  try {
-    return await bcrypt.compare(contraseña, this.contraseña);
-  } catch (error) {
-    throw new Error(error);
-  }
-};
+  console.log(this.contraseña)
+  bcrypt.compare(contraseña, this.contraseña);
+}; */
 
 module.exports = mongoose.model('Usuario', usuarioSchema);

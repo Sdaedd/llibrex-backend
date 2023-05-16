@@ -27,7 +27,14 @@ router.get('/:id', async (req, res) => {
 // Crea un usuario en la BBDD mediante un JSON enviado con POST
 router.post('/', async (req, res) => {
   try {
-    const usuario = await Usuario.create(req.body);
+    const { nombre, contraseña } = req.body;
+
+  //Antes de guardar se encripta la contraseña en el modelo.
+    const usuario = await Usuario.create({
+      nombre: nombre,
+      contraseña: contraseña
+    });
+
     res.status(200).json(usuario);
   } catch (error) {
     console.log(error.message);
@@ -59,6 +66,28 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: `No se puede encontrar ningún usuario con la ID [${id}]` });
     }
     res.status(200).json(usuario);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Ruta para el inicio de sesión
+router.post('/login', async (req, res) => {
+  try {
+    const { nombre, contraseña } = req.body;
+    const usuario = await Usuario.findOne({ nombre });
+    
+    if (!usuario) {
+      return res.status(401).json({ message: 'El nombre no es válido' });
+    }
+/*     console.log(usuario)
+    const contraseñaValida = await usuario.comparePassword(contraseña); */
+
+    if (usuario.contraseña != contraseña) {
+      return res.status(401).json({ message: 'La contraseña no es válida: ['+contraseña+']' });
+    }
+
+    res.status(200).json({ message: 'Inicio de sesión exitoso' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

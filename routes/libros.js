@@ -1,6 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const Libro = require('../models/libroModel.js');
+const multer = require("multer");
+
+// Configurar Multer para guardar los archivos .epub
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "libros/"); // Especifica la carpeta donde se guardarán los archivos
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Puedes utilizar el nombre original del archivo o generar uno único
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // Retorna un JSON con todos los libros en la BBDD
 router.get('/', async (req, res) => {
@@ -24,9 +37,12 @@ router.get('/:id', async (req, res) => {
 });
 
 // Crea un libro en la BBDD mediante un JSON enviado con POST
-router.post('/', async (req, res) => {
+router.post("/", upload.single("epub"), async (req, res) => {
   try {
-    const libro = await Libro.create(req.body);
+    const libroData = req.body;
+    libroData.epub = req.file.path; // Asigna la ruta del archivo .epub al campo "epub" en el objeto libroData
+
+    const libro = await Libro.create(libroData);
     res.status(200).json(libro);
   } catch (error) {
     console.log(error.message);

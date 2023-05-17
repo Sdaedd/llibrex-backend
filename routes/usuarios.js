@@ -29,11 +29,41 @@ router.post('/', async (req, res) => {
   try {
     const { nombre, contraseña } = req.body;
 
-  //Antes de guardar se encripta la contraseña en el modelo.
+    // Antes de guardar se encripta la contraseña en el modelo.
     const usuario = await Usuario.create({
       nombre: nombre,
       contraseña: contraseña
     });
+
+    res.status(200).json(usuario);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Agrega un libro al array progresoLibros de un usuario
+router.post('/:id/libros', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { libro, capituloActual } = req.body;
+
+    const usuario = await Usuario.findById(id);
+    if (!usuario) {
+      return res.status(404).json({ message: `No se puede encontrar ningún usuario con la ID [${id}]` });
+    }
+
+    // Crea un objeto con los datos del libro y el capítulo actual
+    const nuevoProgresoLibro = {
+      libro: libro,
+      capituloActual: capituloActual || 0 // Capítulo por defecto cuando no se ha leído ningún capítulo aún
+    };
+
+    // Agrega el libro al array progresoLibros del usuario
+    usuario.progresoLibros.push(nuevoProgresoLibro);
+
+    // Guarda los cambios en la base de datos
+    await usuario.save();
 
     res.status(200).json(usuario);
   } catch (error) {
@@ -87,9 +117,51 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'La contraseña no es válida: ['+contraseña+']' });
     }
 
-    res.status(200).json({ message: 'Inicio de sesión exitoso' });
+    res.status(200).json({ message: 'Inicio de sesión exitoso', userId: usuario.id });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Retorna los libros en progreso de un usuario en formato JSON
+router.get('/:id/libros', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await Usuario.findById(id);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const progresoLibros = usuario.progresoLibros.map(libro => ({
+      libro: libro.libro,
+      capituloActual: libro.capituloActual
+    }));
+
+    res.status(200).json(progresoLibros);
+  } catch (error) {
+    console.error('Error al obtener los libros en progreso del usuario:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Ruta para guardar un libro en el usuario
+router.post('/:userId/libros', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { libro, capituloActual } = req.body;
+
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    usuario.progresoLibros.push({ libro, capituloActual });
+    await usuario.save();
+
+    res.status(201).json(usuario);
+  } catch (error) {
+    console.error('Error al guardar el libro en progresoLibros del usuario:', error);
+    res.status(500).json({ message: 'Error del servidor' });
   }
 });
 

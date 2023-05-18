@@ -165,4 +165,35 @@ router.post('/:userId/libros', async (req, res) => {
   }
 });
 
+// Borrar un libro del array progresoLibros de un usuario
+router.delete('/:userId/libros/:libroId', async (req, res) => {
+  try {
+    const { userId, libroId } = req.params;
+
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const progresoLibros = usuario.progresoLibros;
+
+    // Encuentra el índice del libro en el array progresoLibros
+    const libroIndex = progresoLibros.findIndex(libro => libro.libro.toString() === libroId);
+    if (libroIndex === -1) {
+      return res.status(404).json({ message: 'Libro no encontrado en el progreso del usuario' });
+    }
+
+    // Elimina el libro del array progresoLibros
+    progresoLibros.splice(libroIndex, 1);
+
+    // Guarda los cambios en la base de datos
+    await usuario.save();
+
+    res.status(200).json({ message: 'Libro borrado exitosamente' });
+  } catch (error) {
+    console.error('Error al borrar el libro del progreso del usuario:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
 module.exports = router;

@@ -9,10 +9,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.get('/', (req, res) => {
-  res.send('Hello LLIBREX API');
-});
-
 app.use('/libros', librosRouter);
 app.use('/usuarios', usuariosRouter);
 app.use('/comentarios', comentariosRouter);

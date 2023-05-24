@@ -123,7 +123,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Retorna los libros en progreso de un usuario en formato JSON
+// Retorna los libros con progreso de un usuario en formato JSON
 router.get('/:id/libros', async (req, res) => {
   try {
     const { id } = req.params;
@@ -164,6 +164,37 @@ router.post('/:userId/libros', async (req, res) => {
     res.status(500).json({ message: 'Error del servidor' });
   }
 });
+
+// Ruta para guardar el progreso de un libro en el usuario
+router.put('/:userId/libros/:libroId', async (req, res) => {
+  try {
+    const { userId, libroId } = req.params;
+    const { capituloActual, epubCfi } = req.body;
+
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const progresoLibro = usuario.progresoLibros.find((progreso) => progreso.libro.toString() === libroId);
+    if (!progresoLibro) {
+      // Si el libro no existe en el progresoLibros, lo agregamos
+      usuario.progresoLibros.push({ libro: libroId, capituloActual, epubCfi });
+    } else {
+      // Si el libro ya existe en el progresoLibros, actualizamos el capituloActual y el epubCfi
+      progresoLibro.capituloActual = capituloActual;
+      progresoLibro.epubCfi = epubCfi;
+    }
+
+    await usuario.save();
+
+    res.status(200).json(usuario);
+  } catch (error) {
+    console.error('Error al guardar el progreso del libro en el usuario:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
 
 // Borrar un libro del array progresoLibros de un usuario
 router.delete('/:userId/libros/:libroId', async (req, res) => {

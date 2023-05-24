@@ -23,8 +23,12 @@ const usuarioSchema = mongoose.Schema(
           required: true
         },
         capituloActual: {
-          type: String,
+          type: Number,
           default: 0 // Capítulo por defecto cuando no se ha leído ningún capítulo aún
+        },
+        epubCfi: {
+          type: String,
+          default: null
         }
       }
     ]

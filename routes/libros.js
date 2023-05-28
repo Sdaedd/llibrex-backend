@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Usuario = require('../models/userModel.js');
 const Libro = require('../models/libroModel.js');
 const multer = require("multer");
 const path = require('path')
@@ -17,7 +18,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.get('/descargar/:id', async (req, res) => {
+router.get('/leer/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const libro = await Libro.findById(id);
@@ -40,6 +41,28 @@ router.get('/descargar/:id', async (req, res) => {
   }
 });
 
+// Descargar un libro por su ID
+router.get('/descargar/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const libro = await Libro.findById(id);
+
+    if (!libro) {
+      return res.status(404).json({ message: `No se puede encontrar ningún libro con la ID [${id}]` });
+    }
+
+    const rutaArchivoEPUB = path.join(__dirname, '..', libro.epub); // Construye la ruta absoluta al archivo EPUB
+
+    // Verificar si el archivo existe en el servidor
+    if (fs.existsSync(rutaArchivoEPUB)) {
+      res.download(rutaArchivoEPUB, libro.title + '.epub'); // Descarga el archivo EPUB con un nombre de archivo personalizado
+    } else {
+      res.status(404).json({ message: `No se puede encontrar el archivo EPUB del libro con la ID [${id}]` });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Retorna un JSON con todos los libros en la BBDD
 router.get('/', async (req, res) => {
@@ -95,10 +118,19 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Borrar el libro de la colección de libros
     const libro = await Libro.findByIdAndDelete(id);
     if (!libro) {
       return res.status(404).json({ message: `No se puede encontrar ningún libro con la ID [${id}]` });
     }
+    
+    // Borrar el libro del campo progresoLibros de todos los usuarios
+    await Usuario.updateMany(
+      { "progresoLibros.libro": id },
+      { $pull: { progresoLibros: { libro: id } } }
+    );
+    
     res.status(200).json(libro);
   } catch (error) {
     res.status(500).json({ message: error.message });

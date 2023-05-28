@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Usuario = require('../models/userModel.js');
 const Libro = require('../models/libroModel.js');
+const fs = require('fs');
 
 // Retorna un JSON con todos los usuarios en la BBDD
 router.get('/', async (req, res) => {
@@ -134,7 +135,8 @@ router.get('/:id/libros', async (req, res) => {
 
     const progresoLibros = usuario.progresoLibros.map(libro => ({
       libro: libro.libro,
-      capituloActual: libro.capituloActual
+      capituloActual: libro.capituloActual,
+      fechaUltimaLectura: libro.fechaUltimaLectura
     }));
 
     res.status(200).json(progresoLibros);
@@ -179,13 +181,15 @@ router.put('/:userId/libros/:libroId', async (req, res) => {
     const progresoLibro = usuario.progresoLibros.find((progreso) => progreso.libro.toString() === libroId);
     if (!progresoLibro) {
       // Si el libro no existe en el progresoLibros, lo agregamos
-      usuario.progresoLibros.push({ libro: libroId, capituloActual, epubCfi });
+      usuario.progresoLibros.push({ libro: libroId, capituloActual, epubCfi, fechaUltimaLectura: new Date() });
     } else {
-      // Si el libro ya existe en el progresoLibros, actualizamos el capituloActual y el epubCfi
+      // Si el libro ya existe en el progresoLibros, actualizamos el capituloActual, epubCfi y fechaUltimaLectura
       progresoLibro.capituloActual = capituloActual;
       progresoLibro.epubCfi = epubCfi;
+      progresoLibro.fechaUltimaLectura = new Date();
+      console.log(progresoLibro.fechaUltimaLectura)
     }
-
+    
     await usuario.save();
 
     res.status(200).json(usuario);
@@ -194,7 +198,6 @@ router.put('/:userId/libros/:libroId', async (req, res) => {
     res.status(500).json({ message: 'Error del servidor' });
   }
 });
-
 
 // Borrar un libro del array progresoLibros de un usuario
 router.delete('/:userId/libros/:libroId', async (req, res) => {

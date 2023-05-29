@@ -118,7 +118,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'La contraseña no es válida: ['+contraseña+']' });
     }
 
-    res.status(200).json({ message: 'Inicio de sesión exitoso', userId: usuario.id });
+    res.status(200).json({ 
+      message: 'Inicio de sesión exitoso',
+      userId: usuario.id, 
+      userRole: usuario.acceso 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

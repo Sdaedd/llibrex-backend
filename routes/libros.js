@@ -2,10 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Usuario = require('../models/userModel.js');
 const Libro = require('../models/libroModel.js');
+const Comentario   = require('../models/comentarioModel.js');
 const multer = require("multer");
 const path = require('path')
 const fs = require('fs');
 
+/* 
+
+  Upload libro
+
+*/
 // Configurar Multer para guardar los archivos .epub
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -17,6 +23,12 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+/* 
+
+  GETS
+
+*/
 
 router.get('/leer/:id', async (req, res) => {
   try {
@@ -67,8 +79,28 @@ router.get('/descargar/:id', async (req, res) => {
 // Retorna un JSON con todos los libros en la BBDD
 router.get('/', async (req, res) => {
   try {
-    const libros = await Libro.find({});
-    res.status(200).json(libros);
+    if (req.query.isbn != undefined) {
+    console.log(req.query.isbn)
+    const isbnFilter = req.query.isbn; // Get the ISBN query parameter
+
+    // Check if an ISBN is provided
+    
+      const libros = await Libro.find({
+        isbn: isbnFilter
+      });
+      
+      console.log(libros)
+
+      if (libros.length < 0) {
+        return res.status(404).json({ message: `No se puede encontrar ningún libro con el ISBN [${isbn}]` });
+      }
+
+      res.status(200).json(libros); // Return the book with the matching ISBN
+    } else {
+      // No ISBN provided, return all books
+      const libros = await Libro.find({});
+      res.status(200).json(libros);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -85,6 +117,12 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+/* 
+
+  POSTS
+
+*/
+
 // Crea un libro en la BBDD mediante un JSON enviado con POST
 router.post("/", upload.single("epub"), async (req, res) => {
   try {
@@ -98,6 +136,56 @@ router.post("/", upload.single("epub"), async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// Agregar un comentario a un libro
+router.post('/:id/comentarios', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const comentario = req.body;
+
+    console.log(comentario)
+
+    const libro = await Libro.findById(id);
+    if (!libro) {
+      return res.status(404).json({ message: `No se puede encontrar ningún libro con la ID [${id}]` });
+    }
+
+    const comentarioGuardado = await Comentario.create(comentario); // Guarda el comentario en la base de datos y obtén el documento guardado
+
+    libro.comments.push(comentarioGuardado._id); // Agrega la ID del comentario al arreglo comments
+    const libroActualizado = await libro.save();
+
+    res.status(200).json(libroActualizado);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/:id/comentarios', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const libro = await Libro.findById(id);
+
+    if (!libro) {
+      return res.status(404).json({ message: 'Libro no encontrado' });
+    }
+
+    const comentarios = libro.comments.map(comment => ({
+      comment: comment,
+    }));
+
+    res.status(200).json(comentarios);
+  } catch (error) {
+    console.error('Error al obtener los libros en progreso del usuario:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+/* 
+
+  PUTS
+
+*/
 
 // Actualiza el Libro que coincida con la ID en la BBDD.
 router.put('/:id', async (req, res) => {
@@ -113,6 +201,12 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+/* 
+
+  DELETES
+
+*/
 
 // Borrar un Libro
 router.delete('/:id', async (req, res) => {

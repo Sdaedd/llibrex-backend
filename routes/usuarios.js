@@ -4,6 +4,12 @@ const Usuario = require('../models/userModel.js');
 const Libro = require('../models/libroModel.js');
 const fs = require('fs');
 
+/* 
+
+  GETS
+
+*/
+
 // Retorna un JSON con todos los usuarios en la BBDD
 router.get('/', async (req, res) => {
   try {
@@ -24,6 +30,12 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+/* 
+
+  POSTS
+
+*/
 
 // Crea un usuario en la BBDD mediante un JSON enviado con POST
 router.post('/', async (req, res) => {

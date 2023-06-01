@@ -50,11 +50,13 @@ const libroSchema = mongoose.Schema(
       type: Number,
       default: 0
     },
-    /* owner: {
+    comments: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    } */
+        ref: 'Comentario',
+        default: []
+      }
+    ]
   },
   { timestamps: true }
 );

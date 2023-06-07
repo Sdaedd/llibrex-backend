@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Crea un SUBcomentario en la BBDD mediante un JSON enviado con POST
+// Crea un Subcomentario en la BBDD mediante un JSON enviado con POST
 router.post('/:id/comentarios', async (req, res) => {
   try {
     const { id } = req.params;

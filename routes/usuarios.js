@@ -31,6 +31,29 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Retorna los libros con progreso de un usuario en formato JSON
+router.get('/:id/libros', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await Usuario.findById(id);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const progresoLibros = usuario.progresoLibros.map(libro => ({
+      libro: libro.libro,
+      capituloActual: libro.capituloActual,
+      fechaUltimaLectura: libro.fechaUltimaLectura
+    }));
+
+    res.status(200).json(progresoLibros);
+  } catch (error) {
+    console.error('Error al obtener los libros en progreso del usuario:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+
 /* 
 
   POSTS
@@ -42,7 +65,7 @@ router.post('/', async (req, res) => {
   try {
     const { nombre, contraseña } = req.body;
 
-    // Antes de guardar se encripta la contraseña en el modelo.
+    // Antes de guardar se encripta la contraseña en el modelo. (EN PROGRESO)
     const usuario = await Usuario.create({
       nombre: nombre,
       contraseña: contraseña
@@ -85,35 +108,6 @@ router.post('/:id/libros', async (req, res) => {
   }
 });
 
-// Actualiza el usuario que coincida con la ID en la BBDD.
-router.put('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const usuario = await Usuario.findByIdAndUpdate(id, req.body);
-    if (!usuario) {
-      return res.status(404).json({ message: `No se puede encontrar ningún usuario con la ID [${id}]` });
-    }
-    const usuarioActualizado = await Usuario.findById(id);
-    res.status(200).json(usuarioActualizado);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Borrar un usuario
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const usuario = await Usuario.findByIdAndDelete(id);
-    if (!usuario) {
-      return res.status(404).json({ message: `No se puede encontrar ningún usuario con la ID [${id}]` });
-    }
-    res.status(200).json(usuario);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
 // Ruta para el inicio de sesión
 router.post('/login', async (req, res) => {
   try {
@@ -140,46 +134,25 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Retorna los libros con progreso de un usuario en formato JSON
-router.get('/:id/libros', async (req, res) => {
+
+/* 
+
+  PUTS
+
+*/
+
+// Actualiza el usuario que coincida con la ID en la BBDD.
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const usuario = await Usuario.findById(id);
+    const usuario = await Usuario.findByIdAndUpdate(id, req.body);
     if (!usuario) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+      return res.status(404).json({ message: `No se puede encontrar ningún usuario con la ID [${id}]` });
     }
-
-    const progresoLibros = usuario.progresoLibros.map(libro => ({
-      libro: libro.libro,
-      capituloActual: libro.capituloActual,
-      fechaUltimaLectura: libro.fechaUltimaLectura
-    }));
-
-    res.status(200).json(progresoLibros);
+    const usuarioActualizado = await Usuario.findById(id);
+    res.status(200).json(usuarioActualizado);
   } catch (error) {
-    console.error('Error al obtener los libros en progreso del usuario:', error);
-    res.status(500).json({ message: 'Error del servidor' });
-  }
-});
-
-// Ruta para guardar un libro en el usuario
-router.post('/:userId/libros', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { libro, capituloActual } = req.body;
-
-    const usuario = await Usuario.findById(userId);
-    if (!usuario) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    usuario.progresoLibros.push({ libro, capituloActual });
-    await usuario.save();
-
-    res.status(201).json(usuario);
-  } catch (error) {
-    console.error('Error al guardar el libro en progresoLibros del usuario:', error);
-    res.status(500).json({ message: 'Error del servidor' });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -212,6 +185,26 @@ router.put('/:userId/libros/:libroId', async (req, res) => {
   } catch (error) {
     console.error('Error al guardar el progreso del libro en el usuario:', error);
     res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+/* 
+
+  DELETE
+
+*/
+
+// Borrar un usuario
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await Usuario.findByIdAndDelete(id);
+    if (!usuario) {
+      return res.status(404).json({ message: `No se puede encontrar ningún usuario con la ID [${id}]` });
+    }
+    res.status(200).json(usuario);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

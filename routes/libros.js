@@ -30,6 +30,43 @@ const upload = multer({ storage: storage });
 
 */
 
+// Retorna un JSON con todos los libros en la BBDD
+router.get('/', async (req, res) => {
+  try {
+    if (req.query.isbn != undefined) {
+    console.log(req.query.isbn)
+    const isbnFilter = req.query.isbn; // Get the ISBN query parameter
+
+    // Check if an ISBN is provided
+    
+      const libros = await Libro.find({
+        isbn: isbnFilter
+      });
+      
+      console.log(libros)
+
+      res.status(200).json(libros); // Return the book with the matching ISBN
+    } else {
+      // No ISBN provided, return all books
+      const libros = await Libro.find({});
+      res.status(200).json(libros);
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Retorna un JSON con el libro que coincida con la ID.
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const libro = await Libro.findById(id);
+    res.status(200).json(libro);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get('/leer/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -76,44 +113,23 @@ router.get('/descargar/:id', async (req, res) => {
   }
 });
 
-// Retorna un JSON con todos los libros en la BBDD
-router.get('/', async (req, res) => {
-  try {
-    if (req.query.isbn != undefined) {
-    console.log(req.query.isbn)
-    const isbnFilter = req.query.isbn; // Get the ISBN query parameter
-
-    // Check if an ISBN is provided
-    
-      const libros = await Libro.find({
-        isbn: isbnFilter
-      });
-      
-      console.log(libros)
-
-      if (libros.length < 0) {
-        return res.status(404).json({ message: `No se puede encontrar ningún libro con el ISBN [${isbn}]` });
-      }
-
-      res.status(200).json(libros); // Return the book with the matching ISBN
-    } else {
-      // No ISBN provided, return all books
-      const libros = await Libro.find({});
-      res.status(200).json(libros);
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Retorna un JSON con el libro que coincida con la ID.
-router.get('/:id', async (req, res) => {
+router.get('/:id/comentarios', async (req, res) => {
   try {
     const { id } = req.params;
     const libro = await Libro.findById(id);
-    res.status(200).json(libro);
+
+    if (!libro) {
+      return res.status(404).json({ message: 'Libro no encontrado' });
+    }
+
+    const comentarios = libro.comments.map(comment => ({
+      comment: comment,
+    }));
+
+    res.status(200).json(comentarios);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error al buscar los comentarios', error);
+    res.status(500).json({ message: 'Error del servidor' });
   }
 });
 
@@ -158,26 +174,6 @@ router.post('/:id/comentarios', async (req, res) => {
     res.status(200).json(libroActualizado);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
-});
-
-router.get('/:id/comentarios', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const libro = await Libro.findById(id);
-
-    if (!libro) {
-      return res.status(404).json({ message: 'Libro no encontrado' });
-    }
-
-    const comentarios = libro.comments.map(comment => ({
-      comment: comment,
-    }));
-
-    res.status(200).json(comentarios);
-  } catch (error) {
-    console.error('Error al obtener los libros en progreso del usuario:', error);
-    res.status(500).json({ message: 'Error del servidor' });
   }
 });
 

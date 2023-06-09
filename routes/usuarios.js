@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Comentario = require('../models/comentarioModel.js')
 const Usuario = require('../models/userModel.js');
 const Libro = require('../models/libroModel.js');
 const fs = require('fs');
@@ -198,15 +199,37 @@ router.put('/:userId/libros/:libroId', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const usuario = await Usuario.findByIdAndDelete(id);
+
+    // Obtener el usuario
+    const usuario = await Usuario.findById(id);
     if (!usuario) {
       return res.status(404).json({ message: `No se puede encontrar ningún usuario con la ID [${id}]` });
     }
-    res.status(200).json(usuario);
+
+    // Almacenar la ID y los likes del usuario
+    const usuarioId = usuario._id;
+    const likes = usuario.progresoLibros.map(libro => libro.likes);
+
+    // Eliminar los likes del usuario
+    usuario.progresoLibros.forEach(libro => {
+      libro.likes = [];
+    });
+
+    // Guardar los cambios en el usuario
+    await usuario.save();
+
+    // Eliminar los comentarios del usuario
+    await Comentario.deleteMany({ usuario: usuarioId });
+
+    // Eliminar el usuario
+    await Usuario.findByIdAndDelete(usuarioId);
+
+    res.status(200).json({ message: 'Usuario borrado exitosamente', usuarioId, likes });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Borrar un libro del array progresoLibros de un usuario
 router.delete('/:userId/libros/:libroId', async (req, res) => {

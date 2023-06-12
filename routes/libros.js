@@ -34,7 +34,6 @@ const upload = multer({ storage: storage });
 router.get('/', async (req, res) => {
   try {
     if (req.query.isbn != undefined) {
-    console.log(req.query.isbn)
     const isbnFilter = req.query.isbn; // Get the ISBN query parameter
 
     // Check if an ISBN is provided
@@ -42,8 +41,6 @@ router.get('/', async (req, res) => {
       const libros = await Libro.find({
         isbn: isbnFilter
       });
-      
-      console.log(libros)
 
       res.status(200).json(libros); // Return the book with the matching ISBN
     } else {
@@ -158,8 +155,6 @@ router.post('/:id/comentarios', async (req, res) => {
   try {
     const { id } = req.params;
     const comentario = req.body;
-
-    console.log(comentario)
 
     const libro = await Libro.findById(id);
     if (!libro) {

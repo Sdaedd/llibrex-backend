@@ -177,7 +177,6 @@ router.put('/:userId/libros/:libroId', async (req, res) => {
       progresoLibro.capituloActual = capituloActual;
       progresoLibro.epubCfi = epubCfi;
       progresoLibro.fechaUltimaLectura = new Date();
-      console.log(progresoLibro.fechaUltimaLectura)
     }
     
     await usuario.save();
